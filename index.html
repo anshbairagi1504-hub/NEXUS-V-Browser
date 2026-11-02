@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS V Browser</title>
+<style>
+:root{--bg:#202124;--bar:#292a2d;--panel:#303134;--text:#f1f3f4;--muted:#bdc1c6;--accent:#8ab4f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px Arial,sans-serif;overflow:hidden}
+#tabs{height:42px;background:#17181a;display:flex;align-items:end;gap:5px;padding:5px 8px 0;overflow-x:auto}
+.tab{height:36px;min-width:125px;max-width:210px;background:#292a2d;border-radius:9px 9px 0 0;display:flex;align-items:center;gap:8px;padding:0 10px;cursor:pointer;color:#ddd}
+.tab.active{background:#35363a;color:white}
+.tab-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.close-tab{border:0;background:transparent;color:#ccc;cursor:pointer;font-size:16px}
+#addTab,.iconbtn{border:0;background:transparent;color:var(--text);cursor:pointer;font-size:20px;padding:7px}
+#addTab{font-size:23px}
+#toolbar{height:54px;background:var(--bar);display:flex;align-items:center;gap:6px;padding:7px 12px}
+.iconbtn:hover,#addTab:hover{background:#444;border-radius:8px}
+#address{height:37px;flex:1;min-width:100px;border:1px solid transparent;border-radius:22px;background:#202124;color:white;padding:0 17px;outline:none}
+#address:focus{border-color:#6c91c5}
+#browserArea{height:calc(100vh - 96px);position:relative}
+.view{height:100%;width:100%;border:0}
+.home{height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);background-size:cover;background-position:center}
+.logo{font-size:55px;font-weight:700;letter-spacing:4px;color:var(--accent);margin-bottom:30px;text-shadow:0 2px 15px #0005}
+.searchbox{width:min(590px,85%);height:49px;border-radius:28px;background:#303134;display:flex;align-items:center;padding:0 18px;border:1px solid #555}
+.searchbox input{flex:1;background:transparent;border:0;outline:0;color:white;font-size:16px}
+.shortcuts{display:flex;gap:22px;margin-top:34px;flex-wrap:wrap;justify-content:center}
+.shortcut{width:90px;text-align:center;cursor:pointer;color:var(--text)}
+.shortcut-icon{width:48px;height:48px;border-radius:50%;background:#35363a;margin:0 auto 9px;display:grid;place-items:center;font-size:21px}
+#menu{display:none;position:absolute;right:12px;top:88px;width:225px;padding:8px;background:#303134;border:1px solid #555;border-radius:12px;z-index:50;box-shadow:0 8px 30px #0008}
+#menu button{display:block;width:100%;border:0;background:transparent;color:white;text-align:left;padding:12px;border-radius:7px;cursor:pointer}
+#menu button:hover,.action:hover{background:#48494d}
+.panel{display:none;position:absolute;inset:0;z-index:20;background:var(--bg);padding:30px;overflow:auto}
+.panel h2{color:var(--accent);margin-top:0}
+.panel button,.action{background:#35363a;color:white;border:0;border-radius:8px;padding:10px 15px;cursor:pointer;margin:4px}
+.item{padding:12px;border-bottom:1px solid #444;overflow-wrap:anywhere}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+label{cursor:pointer}
+#customize{position:absolute;bottom:18px;right:20px;border:0;border-radius:22px;padding:11px 17px;background:#35363a;color:white;cursor:pointer}
+#customize:hover{background:#4a4b50}
+input[type=checkbox]{accent-color:#8ab4f8}
+</style>
+</head>
+<body>
+<div id="tabs"></div>
+<div id="toolbar">
+  <button class="iconbtn" title="Back" onclick="navigate('back')">←</button>
+  <button class="iconbtn" title="Forward" onclick="navigate('forward')">→</button>
+  <button class="iconbtn" title="Reload" onclick="navigate('reload')">↻</button>
+  <input id="address" placeholder="Search Google or enter a website" autocomplete="off">
+  <button class="iconbtn" title="Home" onclick="goHome()">⌂</button>
+  <button class="iconbtn" title="Bookmark this page" onclick="addBookmark()">☆</button>
+  <button class="iconbtn" title="Menu" onclick="toggleMenu()">⋮</button>
+</div>
+<div id="browserArea"></div>
+
+<div id="menu">
+  <button onclick="newTab();hideMenu()">＋ New Tab</button>
+  <button onclick="showPanel('history')">◷ History</button>
+  <button onclick="showPanel('bookmarks')">☆ Bookmarks</button>
+  <button onclick="showPanel('downloads')">↓ Downloads</button>
+  <button onclick="showPanel('settings')">⚙ Settings</button>
+  <button onclick="showPanel('about')">ⓘ About</button>
+  <button onclick="showPanel('updates')">↻ Updates</button>
+</div>
+
+<section id="history" class="panel">
+  <h2>History</h2><div id="historyList"></div>
+  <button onclick="clearHistory()">Clear History</button>
+  <button onclick="closePanels()">Close</button>
+</section>
+<section id="bookmarks" class="panel">
+  <h2>Bookmarks</h2><div id="bookmarkList"></div>
+  <button onclick="closePanels()">Close</button>
+</section>
+<section id="downloads" class="panel">
+  <h2>Downloads</h2><div id="downloadList"><p class="muted">No downloads yet.</p></div>
+  <button onclick="closePanels()">Close</button>
+</section>
+<section id="settings" class="panel">
+  <h2>Settings</h2>
+  <div class="row"><label><input type="checkbox" id="darkMode" checked> Dark mode</label></div>
+  <div class="row"><label><input type="checkbox" id="adBlock" checked> Basic ad and tracker blocking</label></div>
+  <div class="row"><label><input type="checkbox" id="autoUpdate"> Automatically download updates (when configured)</label></div>
+  <p class="muted">Wallpaper</p>
+  <div class="row">
+    <button onclick="chooseWallpaper()">Upload wallpaper</button>
+    <button onclick="resetWallpaper()">Reset wallpaper</button>
+  </div>
+  <button onclick="closePanels()">Close</button>
+</section>
+<section id="about" class="panel">
+  <h2>NEXUS V Browser</h2>
+  <p>Your browser. Your experience.</p>
+  <p id="version">Version loading...</p>
+  <p class="muted">Built with Electron.</p>
+  <button onclick="closePanels()">Close</button>
+</section>
+<section id="updates" class="panel">
+  <h2>Browser Updates</h2>
+  <p id="updateStatus" class="muted">Check whether a new version is available.</p>
+  <p id="updateProgress"></p>
+  <div class="row">
+    <button onclick="checkUpdates()">Check for Updates</button>
+    <button onclick="downloadUpdate()">Download Update</button>
+    <button onclick="installUpdate()">Install Downloaded Update</button>
+  </div>
+  <p class="muted">Auto-update requires a published release and a configured update provider.</p>
+  <button onclick="closePanels()">Close</button>
+</section>
+<button id="customize" onclick="showPanel('settings')">✎ Customize Browser</button>
+
+<script>
+const $ = id => document.getElementById(id);
+let tabs = [];
+let activeTab = -1;
+let historyData = JSON.parse(localStorage.getItem("nexusHistory") || "[]");
+let bookmarks = JSON.parse(localStorage.getItem("nexusBookmarks") || "[]");
+let downloads = [];
+let autoUpdate = localStorage.getItem("nexusAutoUpdate") === "true";
+
+function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+function hideMenu() { $("menu").style.display = "none"; }
+function toggleMenu() { $("menu").style.display = $("menu").style.display === "block" ? "none" : "block"; }
+function closePanels() { document.querySelectorAll(".panel").forEach(p => p.style.display = "none"); }
+function showPanel(id) {
+  hideMenu(); closePanels(); $(id).style.display = "block";
+  if (id === "history") renderHistory();
+  if (id === "bookmarks") renderBookmarks();
+  if (id === "downloads") renderDownloads();
+}
+function makeHome() {
+  const home = document.createElement("div");
+  home.className = "view home";
+  home.innerHTML = `<div class="logo">NEXUS V</div>
+    <div class="searchbox"><input class="homeSearch" placeholder="Search Google or enter a website"></div>
+    <div class="shortcuts">
+      <div class="shortcut" data-url="https://www.google.com"><div class="shortcut-icon">G</div>Google</div>
+      <div class="shortcut" data-url="https://www.youtube.com"><div class="shortcut-icon">▶</div>YouTube</div>
+      <div class="shortcut" data-url="https://www.wikipedia.org"><div class="shortcut-icon">W</div>Wikipedia</div>
+    </div>`;
+  home.querySelector(".homeSearch").addEventListener("keydown", e => { if (e.key === "Enter") openUrl(e.target.value); });
+  home.querySelectorAll(".shortcut").forEach(el => el.addEventListener("click", () => openUrl(el.dataset.url)));
+  applyWallpaperTo(home);
+  return home;
+}
+function newTab() {
+  closePanels();
+  const view = makeHome();
+  $("browserArea").appendChild(view);
+  tabs.push({ element: view, home: true, url: "", title: "New Tab" });
+  activateTab(tabs.length - 1);
+}
+function activateTab(index) {
+  if (!tabs[index]) return;
+  activeTab = index;
+  tabs.forEach((tab, i) => tab.element.style.display = i === index ? (tab.home ? "flex" : "block") : "none");
+  $("address").value = tabs[index].url || "";
+  renderTabs();
+}
+function renderTabs() {
+  const bar = $("tabs"); bar.innerHTML = "";
+  tabs.forEach((tab, i) => {
+    const el = document.createElement("div");
+    el.className = "tab" + (i === activeTab ? " active" : "");
+    const title = document.createElement("span");
+    title.className = "tab-title"; title.textContent = tab.title || "New Tab";
+    title.onclick = () => activateTab(i);
+    const close = document.createElement("button");
+    close.className = "close-tab"; close.textContent = "×";
+    close.onclick = e => { e.stopPropagation(); closeTab(i); };
+    el.append(title, close); el.onclick = () => activateTab(i); bar.appendChild(el);
+  });
+  const add = document.createElement("button"); add.id = "addTab"; add.textContent = "+";
+  add.onclick = newTab; bar.appendChild(add);
+}
+function closeTab(index) {
+  const tab = tabs[index]; if (!tab) return;
+  tab.element.remove(); tabs.splice(index, 1);
+  if (!tabs.length) newTab();
+  else activateTab(Math.min(activeTab >= index ? activeTab - 1 : activeTab, tabs.length - 1));
+}
+function normalizeUrl(value) {
+  let text = value.trim();
+  if (!text) return null;
+  if (/\s/.test(text) || (!text.includes(".") && !/^https?:\/\//i.test(text))) {
+    return "https://www.google.com/search?q=" + encodeURIComponent(text);
+  }
+  if (!/^https?:\/\//i.test(text)) text = "https://" + text;
+  try { const parsed = new URL(text); return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : null; }
+  catch { return null; }
+}
+function openUrl(value) {
+  const url = normalizeUrl(value); if (!url) return;
+  const tab = tabs[activeTab]; if (!tab) return;
+  closePanels(); hideMenu();
+  if (tab.home) {
+    const web = document.createElement("webview");
+    web.className = "view"; web.setAttribute("partition", "persist:nexus");
+    web.setAttribute("webpreferences", "contextIsolation=yes,sandbox=yes");
+    web.addEventListener("page-title-updated", e => { tab.title = e.title; renderTabs(); });
+    web.addEventListener("did-navigate", e => {
+      tab.url = e.url; $("address").value = e.url; addHistory(e.url); renderTabs();
+    });
+    web.addEventListener("did-navigate-in-page", e => {
+      tab.url = e.url; $("address").value = e.url;
+    });
+    web.addEventListener("did-fail-load", e => {
+      if (e.errorCode !== -3) console.error("Page load failed:", e.errorDescription);
+    });
+    tab.element.replaceWith(web); tab.element = web; tab.home = false;
+    web.setAttribute("src", url);
+  } else {
+    tab.element.loadURL(url);
+  }
+  tab.url = url; tab.title = url; $("address").value = url; renderTabs();
+}
+function navigate(action) {
+  const tab = tabs[activeTab]; if (!tab || tab.home) return;
+  const web = tab.element;
+  if (action === "back" && web.canGoBack()) web.goBack();
+  if (action === "forward" && web.canGoForward()) web.goForward();
+  if (action === "reload") web.reload();
+}
+function goHome() {
+  const tab = tabs[activeTab]; if (!tab || tab.home) return;
+  const home = makeHome(); tab.element.replaceWith(home);
+  tab.element = home; tab.home = true; tab.url = ""; tab.title = "New Tab";
+  $("address").value = ""; renderTabs();
+}
+$("address").addEventListener("keydown", e => { if (e.key === "Enter") openUrl(e.target.value); });
+function addHistory(url) {
+  if (!/^https?:\/\//i.test(url)) return;
+  historyData.unshift({ url, date: new Date().toLocaleString() });
+  historyData = historyData.slice(0, 300); save("nexusHistory", historyData);
+}
+function renderHistory() {
+  const list = $("historyList"); list.innerHTML = "";
+  if (!historyData.length) { list.textContent = "No browsing history yet."; return; }
+  historyData.forEach(item => {
+    const row = document.createElement("div"); row.className = "item";
+    const link = document.createElement("button"); link.className = "action";
+    link.textContent = item.url; link.onclick = () => openUrl(item.url);
+    const date = document.createElement("span"); date.className = "muted"; date.textContent = "  " + item.date;
+    row.append(link, date); list.appendChild(row);
+  });
+}
+function clearHistory() { historyData = []; save("nexusHistory", historyData); renderHistory(); }
+function addBookmark() {
+  const url = tabs[activeTab]?.url; if (!url) return;
+  if (!bookmarks.some(b => b.url === url)) {
+    bookmarks.unshift({ url, title: tabs[activeTab].title || url });
+    save("nexusBookmarks", bookmarks);
+  }
+  renderBookmarks();
+}
+function renderBookmarks() {
+  const list = $("bookmarkList"); list.innerHTML = "";
+  if (!bookmarks.length) { list.textContent = "No bookmarks saved yet."; return; }
+  bookmarks.forEach((b, i) => {
+    const row = document.createElement("div"); row.className = "item";
+    const open = document.createElement("button"); open.className = "action";
+    open.textContent = b.title || b.url; open.onclick = () => openUrl(b.url);
+    const remove = document.createElement("button"); remove.textContent = "Remove";
+    remove.onclick = () => { bookmarks.splice(i, 1); save("nexusBookmarks", bookmarks); renderBookmarks(); };
+    row.append(open, remove); list.appendChild(row);
+  });
+}
+function renderDownloads() {
+  const list = $("downloadList"); list.innerHTML = "";
+  if (!downloads.length) { list.textContent = "No downloads yet."; return; }
+  downloads.forEach(d => {
+    const row = document.createElement("div"); row.className = "item";
+    const percent = d.total > 0 ? Math.round(d.received / d.total * 100) + "%" : "Progress unavailable";
+    row.textContent = `${d.name} — ${d.state} — ${percent}`;
+    if (d.savePath) {
+      const open = document.createElement("button"); open.textContent = "Show file";
+      open.onclick = () => window.nexus.openExternal("file:///" + d.savePath.replace(/\\/g, "/"));
+      row.appendChild(open);
+    }
+    list.appendChild(row);
+  });
+}
+function applyTheme(dark) {
+  document.body.style.setProperty("--bg", dark ? "#202124" : "#f1f3f4");
+  document.body.style.setProperty("--bar", dark ? "#292a2d" : "#dadce0");
+  document.body.style.setProperty("--text", dark ? "#f1f3f4" : "#202124");
+  document.body.style.color = dark ? "#f1f3f4" : "#202124";
+  document.querySelectorAll(".home").forEach(applyWallpaperTo);
+  localStorage.setItem("nexusDark", String(dark));
+}
+function applyWallpaperTo(element) {
+  const wallpaper = localStorage.getItem("nexusWallpaper");
+  if (wallpaper) element.style.backgroundImage = `linear-gradient(#0005,#0005),url("${wallpaper}")`;
+}
+async function chooseWallpaper() {
+  const file = await window.nexus.chooseWallpaper();
+  if (!file) return;
+  // Load the selected image through a local file URL.
+  const url = "file:///" + file.replace(/\\/g, "/");
+  localStorage.setItem("nexusWallpaper", url);
+  document.querySelectorAll(".home").forEach(applyWallpaperTo);
+}
+function resetWallpaper() {
+  localStorage.removeItem("nexusWallpaper");
+  document.querySelectorAll(".home").forEach(el => el.style.backgroundImage = "");
+}
+$("darkMode").checked = localStorage.getItem("nexusDark") !== "false";
+$("darkMode").addEventListener("change", e => applyTheme(e.target.checked));
+$("adBlock").checked = localStorage.getItem("nexusAdBlock") !== "false";
+$("adBlock").addEventListener("change", async e => {
+  localStorage.setItem("nexusAdBlock", String(e.target.checked));
+  await window.nexus.setAdBlock(e.target.checked);
+});
+$("autoUpdate").checked = autoUpdate;
+$("autoUpdate").addEventListener("change", e => {
+  autoUpdate = e.target.checked; localStorage.setItem("nexusAutoUpdate", String(autoUpdate));
+});
+async function checkUpdates() {
+  $("updateStatus").textContent = "Checking for updates...";
+  const result = await window.nexus.checkUpdates();
+  $("updateStatus").textContent = result.message || result.status;
+}
+async function downloadUpdate() {
+  const result = await window.nexus.downloadUpdate();
+  $("updateStatus").textContent = result.message;
+}
+async function installUpdate() {
+  const ok = await window.nexus.installUpdate();
+  if (!ok) $("updateStatus").textContent = "Install is available after the app is packaged and an update is downloaded.";
+}
+window.nexus.onDownloadUpdate(data => {
+  const index = downloads.findIndex(x => x.id === data.id);
+  if (index >= 0) downloads[index] = data; else downloads.unshift(data);
+  if ($("downloads").style.display === "block") renderDownloads();
+});
+window.nexus.onUpdateAvailable(version => {
+  $("updateStatus").textContent = "Update available: " + version;
+  if (autoUpdate) downloadUpdate();
+});
+window.nexus.onUpdateNotAvailable(() => $("updateStatus").textContent = "You are using the latest available version.");
+window.nexus.onUpdateProgress(progress => {
+  $("updateProgress").textContent = "Downloading update: " + Math.round(progress.percent) + "%";
+});
+window.nexus.onUpdateDownloaded(version => {
+  $("updateStatus").textContent = "Update " + version + " downloaded. Click Install.";
+});
+window.nexus.onUpdateError(message => $("updateStatus").textContent = "Update error: " + message);
+window.nexus.getVersion().then(v => $("version").textContent = "Version: " + v);
+window.nexus.setAdBlock($("adBlock").checked);
+applyTheme($("darkMode").checked);
+newTab();
+</script>
+</body>
+</html>
