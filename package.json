@@ -19,6 +19,14 @@
     "productName": "NEXUS V Browser",
     "directories": {
       "output": "dist"
+      ,
+  "publish": [
+  {
+    "provider": "github",
+    "owner": "anshbairagi1504-hub",
+    "repo": "NEXUS-V-Browser"
+  }
+]
     },
     "files": [
       "main.js",
