@@ -1,7 +1,7 @@
 
 {
   "name": "nexus-v-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "NEXUS V Browser",
   "main": "main.js",
   "scripts": {
