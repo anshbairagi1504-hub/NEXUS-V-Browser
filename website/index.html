@@ -2,40 +2,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXUS V Browser</title>
-  <style>
-    body {
-      margin: 0;
-      background: #080b16;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    header { padding: 25px; }
-    h1 { font-size: 48px; color: #8b9cff; }
-    p { color: #b8c0d8; font-size: 18px; }
-    .hero { padding: 100px 20px; }
-    .download {
-      display: inline-block;
-      background: #526dff;
-      color: white;
-      padding: 16px 30px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d19">
+<meta name="description" content="Discover NEXUS V Browser. A modern desktop browsing experience with smart features, bookmarks, dark mode and automatic updates.">
+<title>NEXUS V Browser — Browse Beyond Limits</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+ background:#080d19;color:#fff;
+ font-family:Arial,Helvetica,sans-serif;
+ overflow-x:hidden
+}
+a{text-decoration:none;color:inherit}
+nav{
+ height:82px;display:flex;align-items:center;
+ justify-content:space-between;padding:0 8%;
+ border-bottom:1px solid #ffffff12;
+ position:sticky;top:0;background:#080d19ed;
+ backdrop-filter:blur(15px);z-index:10
+}
+.logo{font-size:23px;font-weight:900;letter-spacing:2px}
+.logo span{color:#6585ff}
+.links{display:flex;gap:30px;color:#b8c1d8;font-size:14px}
+.links a:hover{color:#7896ff}
+.btn{
+ display:inline-block;padding:15px 27px;
+ background:linear-gradient(120deg,#526fff,#8057ed);
+ border-radius:9px;font-weight:bold;
+ transition:.25s;border:0;color:white;cursor:pointer
+}
+.btn:hover{transform:translateY(-3px);filter:brightness(1.15)}
+.hero{
+ min-height:650px;padding:100px 8%;
+ display:flex;align-items:center;justify-content:space-between;
+ gap:50px;position:relative;overflow:hidden
+}
+.hero:before{
+ content:"";position:absolute;width:500px;height:500px;
+ background:#425cff30;filter:blur(120px);
+ right:5%;top:10%;pointer-events:none
+}
+.hero-content{max-width:620px;position:relative}
+.tag{
+ display:inline-block;padding:9px 15px;border-radius:30px;
+ background:#182345;color:#9bb0ff;font-size:12px;
+ letter-spacing:1px;margin-bottom:27px
+}
+h1{font-size:clamp(48px,7vw,82px);line-height:1.08;
+ letter-spacing:-3px;margin-bottom:25px}
+h1 span{background:linear-gradient(90deg,#76a0ff,#b18bff);
+ background-clip:text;color:transparent}
+.hero p{color:#aab5cc;font-size:18px;line-height:1.8;
+ max-width:520px;margin-bottom:34px}
+.hero-art{
+ width:390px;height:390px;flex-shrink:0;
+ border-radius:40px;display:grid;place-items:center;
+ background:radial-gradient(circle at 50% 40%,#465cbb55,#111a37 60%,#0b1020);
+ border:1px solid #8097ff35;
+ box-shadow:0 0 100px #425cff25;
+ position:relative
+}
+.symbol{
+ width:175px;height:175px;border-radius:42px;
+ background:linear-gradient(145deg,#7899ff,#6042c8);
+ display:grid;place-items:center;
+ font-size:80px;font-weight:900;
+ box-shadow:0 20px 70px #536bff70;
+ transform:rotate(-8deg)
+}
+.stats{
+ display:grid;grid-template-columns:repeat(3,1fr);
+ gap:20px;padding:30px 8%;
+ border-top:1px solid #ffffff12;
+ border-bottom:1px solid #ffffff12
+}
+.stat{text-align:center}
+.stat strong{font-size:25px;color:#91aaff}
+.stat p{font-size:13px;color:#9aa8c2;margin-top:9px}
+section{padding:100px 8%}
+.section-title{text-align:center;margin-bottom:55px}
+.section-title h2{font-size:42px;margin-bottom:14px}
+.section-title p{color:#9ba8c2;line-height:1.7}
+.cards{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:22px
+}
+.card{
+ background:linear-gradient(145deg,#151e35,#0d1425);
+ border:1px solid #ffffff12;border-radius:18px;
+ padding:32px;transition:.3s
+}
+.card:hover{transform:translateY(-7px);border-color:#718aff70}
+.card .ico{font-size:32px;margin-bottom:24px}
+.card h3{font-size:20px;margin-bottom:13px}
+.card p{color:#9ba8c2;line-height:1.7;font-size:14px}
+.download-box{
+ text-align:center;padding:70px 25px;border-radius:25px;
+ background:radial-gradient(ellipse at top,#344c9b55,#131b32 65%);
+ border:1px solid #718aff40
+}
+.download-box h2{font-size:42px;margin-bottom:17px}
+.download-box p{color:#aab5cc;margin-bottom:30px;line-height:1.7}
+.version{font-size:12px;color:#91aaff;margin-top:18px}
+footer{
+ padding:35px 8%;border-top:1px solid #ffffff12;
+ display:flex;justify-content:space-between;gap:20px;
+ color:#8290aa;font-size:13px;flex-wrap:wrap
+}
+footer a:hover{color:white}
+@media(max-width:850px){
+ .hero{flex-direction:column;text-align:center;padding-top:75px}
+ .hero p{margin-left:auto;margin-right:auto}
+ .hero-art{width:290px;height:290px}
+ .symbol{width:130px;height:130px;font-size:60px}
+ .cards{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:580px){
+ nav{padding:0 5%;height:70px}
+ .links{display:none}
+ .hero{padding:75px 6%}
+ .stats{padding:25px 5%;gap:8px}
+ .stat strong{font-size:19px}
+ .stat p{font-size:11px}
+ section{padding:75px 6%}
+ .cards{grid-template-columns:1fr}
+ .section-title h2,.download-box h2{font-size:32px}
+ footer{padding:30px 6%;flex-direction:column}
+}
+</style>
 </head>
+
 <body>
-  <header><strong>NEXUS V BROWSER</strong></header>
-  <main class="hero">
-    <h1>NEXUS V Browser</h1>
-    <p>A new way to experience the web.</p>
-    <a class="download" href="https://github.com/anshbairagi1504-hub/NEXUS-V-Browser/releases/download/v1.0.0/NEXUS.V.Browser.Setup.1.0.0.exe">
-      Download for Windows
-    </a>
-  </main>
+
+<nav>
+ <a class="logo" href="#">NEXUS <span>V.</span></a>
+ <div class="links">
+  <a href="#home">Home</a>
+  <a href="#features">Features</a>
+  <a href="#download">Download</a>
+  <a href="#about">About</a>
+ </div>
+ <a class="btn" href="#download">Get Browser</a>
+</nav>
+
+<main>
+<section class="hero" id="home">
+ <div class="hero-content">
+  <div class="tag">✦ INTRODUCING NEXUS V</div>
+  <h1>Browse beyond <span>limits.</span></h1>
+  <p>
+   Discover a fresh desktop browsing experience.
+   Simple, modern and designed to make your everyday
+   browsing more comfortable.
+  </p>
+  <a class="btn" href="#download">↓ &nbsp; Download for Windows</a>
+ </div>
+ <div class="hero-art">
+  <div class="symbol">N</div>
+ </div>
+</section>
+
+<div class="stats">
+ <div class="stat"><strong>Smart</strong><p>Simple browsing</p></div>
+ <div class="stat"><strong>Modern</strong><p>Clean experience</p></div>
+ <div class="stat"><strong>Secure*</strong><p>Designed with care</p></div>
+</div>
+
+<section id="features">
+ <div class="section-title">
+  <h2>Everything you need.</h2>
+  <p>A collection of useful features for your everyday browsing.</p>
+ </div>
+
+ <div class="cards">
+  <article class="card">
+   <div class="ico">🌐</div>
+   <h3>Multiple Tabs</h3>
+   <p>Move between your favourite websites with multiple tabs.</p>
+  </article>
+  <article class="card">
+   <div class="ico">🔖</div>
+   <h3>Bookmarks</h3>
+   <p>Keep your favourite websites organised and easy to find.</p>
+  </article>
+  <article class="card">
+   <div class="ico">🌙</div>
+   <h3>Dark Mode</h3>
+   <p>Enjoy a clean and comfortable dark browsing interface.</p>
+  </article>
+  <article class="card">
+   <div class="ico">⬇️</div>
+   <h3>Download Manager</h3>
+   <p>Keep track of your downloaded files in one place.</p>
+  </article>
+  <article class="card">
+   <div class="ico">🛡️</div>
+   <h3>Ad Blocker</h3>
+   <p>Built-in ad blocking features, where supported.</p>
+  </article>
+  <article class="card">
+   <div class="ico">⚡</div>
+   <h3>Automatic Updates</h3>
+   <p>Check for new browser releases through the update system.</p>
+  </article>
+ </div>
+</section>
+
+<section id="download">
+ <div class="download-box">
+  <h2>Ready to explore?</h2>
+  <p>Get NEXUS V Browser for your Windows desktop.</p>
+  <a class="btn" href="https://github.com/anshbairagi1504-hub/NEXUS-V-Browser/releases/download/v1.0.0/NEXUS.V.Browser.Setup.1.0.0.exe">
+   ↓ &nbsp; Download NEXUS V
+  </a>
+  <div class="version">Windows desktop • Latest release on GitHub</div>
+ </div>
+</section>
+
+<section id="about">
+ <div class="section-title">
+  <h2>Welcome to NEXUS V.</h2>
+  <p>
+   NEXUS V is a desktop browser project focused on
+   bringing useful browsing tools together in one place.
+   Built to keep your web experience simple and organised.
+  </p>
+ </div>
+</section>
+</main>
+
+<footer>
+ <div>© 2026 NEXUS V Browser. All rights reserved.</div>
+ <div>
+  <a href="#about">About</a> &nbsp; · &nbsp;
+  <a href="mailto:contact@nexusvbrowser.com">Contact</a> &nbsp; · &nbsp;
+  <a href="privacy.html">Privacy</a>
+ </div>
+</footer>
+
 </body>
 </html>
